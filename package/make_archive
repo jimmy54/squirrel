@@ -2,13 +2,9 @@
 # enconding: utf-8
 
 cd "$(dirname $0)"
-PROJECT_ROOT="$(cd ..; pwd)"
+source common.sh
 
-get_app_version() {
-    sed -n '/CFBundleVersion/{n;s/.*<string>\(.*\)<\/string>.*/\1/;p;}' $@
-}
-
-app_version=$(get_app_version "${PROJECT_ROOT}/Info.plist")
+app_version="$(get_app_version)"
 download_url="https://dl.bintray.com/rime/squirrel/Squirrel-${app_version}.zip"
 target_archive="archives/Squirrel-${app_version}.zip"
 
@@ -50,7 +46,7 @@ cat > "${appcast_file}" << EOF
     <item>
       <title>鼠鬚管 ${app_version}</title>
       <sparkle:releaseNotesLink>https://rime.github.io/release/squirrel/</sparkle:releaseNotesLink>
-      <sparkle:minimumSystemVersion>10.7.0</sparkle:minimumSystemVersion>
+      <sparkle:minimumSystemVersion>10.9.0</sparkle:minimumSystemVersion>
       <pubDate>${pub_date}</pubDate>
       <enclosure url="${download_url}"
                  sparkle:version="${app_version}"
@@ -78,7 +74,7 @@ cat > "${appcast_file}" << EOF
     <item>
       <title>鼠鬚管 ${app_version}</title>
       <sparkle:releaseNotesLink>https://rime.github.io/testing/squirrel/</sparkle:releaseNotesLink>
-      <sparkle:minimumSystemVersion>10.7.0</sparkle:minimumSystemVersion>
+      <sparkle:minimumSystemVersion>10.9.0</sparkle:minimumSystemVersion>
       <pubDate>${pub_date}</pubDate>
       <enclosure url="${download_url}"
                  sparkle:version="${app_version}"
@@ -107,7 +103,7 @@ cat > "${appcast_file}" << EOF
     <item>
       <title>鼠鬚管 ${app_version}</title>
       <sparkle:releaseNotesLink>https://rime.github.io/testing/squirrel/</sparkle:releaseNotesLink>
-      <sparkle:minimumSystemVersion>10.7.0</sparkle:minimumSystemVersion>
+      <sparkle:minimumSystemVersion>10.9.0</sparkle:minimumSystemVersion>
       <pubDate>${pub_date}</pubDate>
       <enclosure url="${download_url}"
                  sparkle:version="${app_version}"

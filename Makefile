@@ -12,7 +12,8 @@ RIME_LIB_DIR = librime/dist/lib
 RIME_LIBRARY_FILE_NAME = librime.1.dylib
 RIME_LIBRARY = lib/$(RIME_LIBRARY_FILE_NAME)
 
-RIME_DEPS = librime/thirdparty/lib/libmarisa.a \
+RIME_DEPS = librime/thirdparty/lib/libcapnp.a \
+	librime/thirdparty/lib/libmarisa.a \
 	librime/thirdparty/lib/libleveldb.a \
 	librime/thirdparty/lib/libopencc.a \
 	librime/thirdparty/lib/libyaml-cpp.a
@@ -20,8 +21,8 @@ PLUM_DATA = bin/rime-install \
 	data/plum/default.yaml \
 	data/plum/symbols.yaml \
 	data/plum/essay.txt
-OPENCC_DATA = data/opencc/TSCharacters.ocd \
-	data/opencc/TSPhrases.ocd \
+OPENCC_DATA = data/opencc/TSCharacters.ocd2 \
+	data/opencc/TSPhrases.ocd2 \
 	data/opencc/t2s.json
 DEPS_CHECK = $(RIME_LIBRARY) $(PLUM_DATA) $(OPENCC_DATA)
 
