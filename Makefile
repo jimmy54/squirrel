@@ -135,7 +135,9 @@ clean-sparkle:
 	rm -rf Frameworks/* > /dev/null 2>&1 || true
 	rm -rf Sparkle/build > /dev/null 2>&1 || true
 
-.PHONY: package archive
+.PHONY: package dmg archive
+
+DMG = package/Squirrel.dmg
 
 $(PACKAGE):
 ifdef DEV_ID
@@ -152,7 +154,19 @@ endif
 
 package: release $(PACKAGE)
 
-archive: package package/sign_update
+$(DMG):
+ifdef DEV_ID
+	bash package/sign_app "$(DEV_ID)" "$(DERIVED_DATA_PATH)"
+endif
+	bash package/make_dmg "$(DERIVED_DATA_PATH)"
+ifdef DEV_ID
+	xcrun notarytool submit package/Squirrel.dmg --keychain-profile "$(DEV_ID)" --wait
+	xcrun stapler staple package/Squirrel.dmg
+endif
+
+dmg: release $(DMG)
+
+archive: dmg package/sign_update
 	bash package/make_archive
 
 DSTROOT = /Library/Input Methods
@@ -187,6 +201,7 @@ clean:
 clean-package:
 	rm -rf package/*appcast.xml > /dev/null 2>&1 || true
 	rm -rf package/*.pkg > /dev/null 2>&1 || true
+	rm -rf package/*.dmg > /dev/null 2>&1 || true
 	rm -rf package/sign_update > /dev/null 2>&1 || true
 
 clean-deps:

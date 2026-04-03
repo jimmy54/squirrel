@@ -7,27 +7,27 @@ cd "$(dirname $0)"
 source common.sh
 
 app_version="$(get_app_version)"
-target_pkg="Squirrel-${app_version}.pkg"
-download_url="https://github.com/rime/squirrel/releases/download/${app_version}/${target_pkg}"
+target_dmg="Squirrel-${app_version}.dmg"
+download_url="https://github.com/rime/squirrel/releases/download/${app_version}/${target_dmg}"
 
 verify_archive() {
-    if ! [ -f "${target_pkg}" ]; then
-        echo >&2 "ERROR: file does not exit: ${target_pkg}"
+    if ! [ -f "${target_dmg}" ]; then
+        echo >&2 "ERROR: file does not exist: ${target_dmg}"
         exit 1
     fi
     echo 'sha256 checksum:'
-    echo "${checksum}  ${target_pkg}"
-    shasum -a 256 -c <<<"${checksum}  ${target_pkg}" || exit 1
+    echo "${checksum}  ${target_dmg}"
+    shasum -a 256 -c <<<"${checksum}  ${target_dmg}" || exit 1
 }
 
 create_archive() {
-    if [ -e "${target_pkg}" ]; then
-        echo >&2 "ERROR: target archive already exists: ${target_pkg}"
+    if [ -e "${target_dmg}" ]; then
+        echo >&2 "ERROR: target archive already exists: ${target_dmg}"
         exit 1
     fi
-    cp Squirrel.pkg "${target_pkg}"
+    cp Squirrel.dmg "${target_dmg}"
     echo 'sha256 checksum:'
-    shasum -a 256 "${target_pkg}"
+    shasum -a 256 "${target_dmg}"
 }
 
 if [ -n "${checksum}" ]; then
@@ -36,7 +36,7 @@ else
     create_archive
 fi
 
-if signature=$(./sign_update "${target_pkg}"); then
+if signature=$(./sign_update "${target_dmg}"); then
     echo "sign update is successful."
 else
     echo "sign_update not working, skiping signing update."
@@ -66,7 +66,7 @@ cat > "${appcast_file}" << EOF
                  sparkle:version="${app_version}"
                  sparkle:edSignature="${edSignature}"
                  length="${length}"
-                 type="application/octet-stream"/>
+                 type="application/x-apple-diskimage"/>
     </item>
   </channel>
 </rss>
@@ -94,7 +94,7 @@ cat > "${appcast_file}" << EOF
                  sparkle:version="${app_version}"
                  sparkle:edSignature="${edSignature}"
                  length="${length}"
-                 type="application/octet-stream"/>
+                 type="application/x-apple-diskimage"/>
     </item>
   </channel>
 </rss>
@@ -104,7 +104,7 @@ ls -l ${appcast_file}
 
 # for testing appcast push locally.
 appcast_file='debug-appcast.xml'
-download_url="file://${PROJECT_ROOT}/package/${target_pkg}"
+download_url="file://${PROJECT_ROOT}/package/${target_dmg}"
 
 cat > "${appcast_file}" << EOF
 <?xml version="1.0" encoding="UTF-8"?>
@@ -117,13 +117,13 @@ cat > "${appcast_file}" << EOF
     <item>
       <title>鼠鬚管 ${app_version}</title>
       <sparkle:releaseNotesLink>https://rime.github.io/testing/squirrel/</sparkle:releaseNotesLink>
-      <sparkle:minimumSystemVersion>10.9.0</sparkle:minimumSystemVersion>
+      <sparkle:minimumSystemVersion>13.0.0</sparkle:minimumSystemVersion>
       <pubDate>${pub_date}</pubDate>
       <enclosure url="${download_url}"
                  sparkle:version="${app_version}"
                  sparkle:edSignature="${edSignature}"
                  length="${length}"
-                 type="application/octet-stream"/>
+                 type="application/x-apple-diskimage"/>
     </item>
   </channel>
 </rss>
