@@ -126,31 +126,51 @@ make ARCHS='arm64 x86_64' BUILD_UNIVERSAL=1
 
 ## Install it on your Mac
 
-### Make Package
+### Make DMG (recommended)
 
-Just add `package` after `make`
+Build a drag-and-drop DMG disk image — the standard macOS distribution format.
+No PKG installer or postinstall scripts are required.
+
+```
+make dmg ARCHS='arm64 x86_64'
+```
+
+The resulting `package/Squirrel.dmg` contains `Squirrel.app` and a shortcut to
+`/Library/Input Methods/`.  To install:
+
+1. Open `Squirrel.dmg`.
+2. Drag `Squirrel.app` onto the **Input Methods** shortcut.
+3. Launch Squirrel from Launchpad or `/Library/Input Methods/`.  On the first
+   launch the input source is registered and enabled automatically — no logout
+   is needed.
+
+Define `DEV_ID` to handle code signing and
+[notarization](https://developer.apple.com/documentation/security/notarizing_macos_software_before_distribution)
+automatically (Apple Developer ID required):
+
+```
+make dmg DEV_ID="Your Name" ARCHS='arm64 x86_64'
+```
+
+To make notarization work, save your credential under the same name first:
+
+```
+xcrun notarytool store-credentials 'Your Name'
+```
+
+You **don't** need `DEV_ID` if you are not distributing the build publicly.
+
+### Make PKG (legacy)
+
+The PKG-based installer is still available for workflows that require it:
 
 ```
 make package ARCHS='arm64'
 ```
 
-Define `DEV_ID` to automatically handle code signing and [notarization](https://developer.apple.com/documentation/security/notarizing_macos_software_before_distribution) (Apple Developer ID needed)
-
-To make this work, you need a `Developer ID Installer: (your name/org)` and set your name/org as `DEV_ID` env variable. 
-
-To make notarization work, you also need to save your credential under the same name as above.
-
-```
-xcrun notarytool store-credentials 'your name/org'
-```
-
-You **don't** need to define `DEV_ID` if you don't intend to distribute the package.
-
 ### Directly Install
 
-**You might need to precede with sudo, and without a logout, the App might not work properly. Direct install is not very recommended.**
-
-Once built, you can install and try it live on your Mac computer:
+Once built, you can install directly on your Mac for development:
 
 ``` sh
 # Squirrel as a Universal app

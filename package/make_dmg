@@ -1,0 +1,87 @@
+#!/bin/bash
+# Creates a distributable DMG disk image for Squirrel.
+# Usage: bash package/make_dmg <derived_data_path>
+# The resulting Squirrel.dmg is written to the package/ directory.
+
+set -e
+
+DERIVED_DATA_PATH=$1
+INSTALL_LOCATION='/Library/Input Methods'
+
+cd "$(dirname "$0")"
+source common.sh
+
+APP_NAME="Squirrel"
+APP_BUNDLE="${APP_NAME}.app"
+DMG_NAME="${APP_NAME}.dmg"
+DMG_TMP_NAME="${APP_NAME}-tmp.dmg"
+APP_SOURCE="${PROJECT_ROOT}/${DERIVED_DATA_PATH}/Build/Products/Release/${APP_BUNDLE}"
+
+if [ ! -d "${APP_SOURCE}" ]; then
+    echo >&2 "ERROR: built app not found: ${APP_SOURCE}"
+    exit 1
+fi
+
+# Prepare staging directory with app and a symlink to the install location.
+STAGE_DIR=$(mktemp -d)
+trap 'rm -rf "${STAGE_DIR}"' EXIT
+
+cp -R "${APP_SOURCE}" "${STAGE_DIR}/"
+# Create a symlink so users can drag Squirrel.app onto it to install.
+ln -s "${INSTALL_LOCATION}" "${STAGE_DIR}/Input Methods"
+
+DMG_OUT="${PROJECT_ROOT}/package/${DMG_NAME}"
+DMG_TMP="${PROJECT_ROOT}/package/${DMG_TMP_NAME}"
+
+rm -f "${DMG_OUT}" "${DMG_TMP}"
+
+# Create a temporary read-write DMG from the staging folder.
+hdiutil create \
+    -volname "${APP_NAME}" \
+    -srcfolder "${STAGE_DIR}" \
+    -fs HFS+ \
+    -fsargs "-c c=64,a=16,b=16" \
+    -format UDRW \
+    -size 400m \
+    "${DMG_TMP}"
+
+# Mount the temporary DMG so we can adjust its layout.
+MOUNT_DIR=$(mktemp -d)
+hdiutil attach "${DMG_TMP}" -readwrite -noverify -noautoopen -mountpoint "${MOUNT_DIR}"
+
+# Give the window a fixed size and set icon positions via AppleScript.
+echo '
+tell application "Finder"
+  tell disk "'"${APP_NAME}"'"
+    open
+    set current view of container window to icon view
+    set toolbar visible of container window to false
+    set statusbar visible of container window to false
+    set the bounds of container window to {100, 100, 700, 420}
+    set theViewOptions to the icon view options of container window
+    set arrangement of theViewOptions to not arranged
+    set icon size of theViewOptions to 128
+    set position of item "'"${APP_BUNDLE}"'" of container window to {160, 180}
+    set position of item "Input Methods" of container window to {440, 180}
+    update without registering applications
+    delay 2
+    close
+  end tell
+end tell
+' | osascript || echo "WARNING: AppleScript layout configuration failed (expected in headless CI)."
+
+# Flush the volume.
+sync; sync
+
+# Detach the temporary DMG.
+hdiutil detach "${MOUNT_DIR}" -quiet
+
+# Convert to a compressed, read-only DMG.
+hdiutil convert "${DMG_TMP}" \
+    -format UDZO \
+    -imagekey zlib-level=9 \
+    -o "${DMG_OUT}"
+
+rm -f "${DMG_TMP}"
+
+echo "Created: ${DMG_OUT}"

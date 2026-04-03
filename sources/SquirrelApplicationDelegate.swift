@@ -57,6 +57,21 @@ final class SquirrelApplicationDelegate: NSObject, NSApplicationDelegate, SPUSta
     addObservers()
   }
 
+  func applicationDidFinishLaunching(_ notification: Notification) {
+    // On first launch after DMG installation, register and enable the input source
+    // automatically so the user does not have to run the app from the command line.
+    // A UserDefaults flag guards against re-running registration on every launch
+    // in the unlikely case the user has manually disabled all input modes.
+    let defaults = UserDefaults.standard
+    let registeredKey = "SquirrelInputSourceRegistered"
+    if !defaults.bool(forKey: registeredKey) {
+      let installer = SquirrelInstaller()
+      installer.register()
+      installer.enable()
+      defaults.set(true, forKey: registeredKey)
+    }
+  }
+
   func applicationWillTerminate(_ notification: Notification) {
     // swiftlint:disable:next notification_center_detachment
     NotificationCenter.default.removeObserver(self)
